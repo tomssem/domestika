@@ -10,14 +10,15 @@ const settings = {
 };
 
 const params = {
-  cols: 4,
-  rows: 4,
+  cols: 10,
+  rows: 10,
   freq: 0.001,
   amp: 1,
-  colorStyle: "autumn",
+  colorStyleIn: "autumn",
   animate: true,
   frame: 0,
-  colourizer: undefined,
+  colourizerIn: undefined,
+  colourizerOut: undefined,
   numColours: 10
 };
 
@@ -105,13 +106,6 @@ const randomColor = (x) => {
   return indexColor(x, colors);
 };
 
-const getColor = (f, name) => {
-  switch (name) {
-    case "random" : return randomColor(f);
-    case "mono" : return mono(f);
-  }
-}
-
 class Point {
   constructor(x, y) {
     this.x = x;
@@ -168,6 +162,18 @@ class Polygon {
       // early exit
       return false;
     }
+
+
+    let ps = this.vertices;
+    let inside = false;
+    for(let i = 0, j = ps.length - 1; i < ps.length; j = i++) {
+      if((ps[i].y > y) != (ps[j].y > y) 
+        && x < (( ps[ j ].x - ps[ i ].x ) * ( y - ps[ i ].y ) / ( ps[ j ].y - ps[ i ].y ) + ps[ i ].x )) {
+          inside = !inside;
+        }
+    }
+
+    return inside;
   }
 }
 
@@ -194,8 +200,9 @@ const mapleLeaf = new Polygon([
 
 const sketch = () => {
   return ({ context, width, height, frame }) => {
-    if(params.colourizer === undefined) {
-      params.colourizer = makeColourIndexer(params.colorStyle, params.numColours);
+    if(params.colourizerIn === undefined) {
+      params.colourizerIn = makeColourIndexer(params.colorStyleIn, params.numColours);
+      params.colourizerOut = makeColourIndexer("mono", 2 * params.numColours);
     }
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
@@ -224,7 +231,11 @@ const sketch = () => {
       context.save();
       context.translate(x, y);
 
-      context.fillStyle = params.colourizer(f);
+      if(scaledLeaf.contains(x, y)) {
+      context.fillStyle = params.colourizerIn(f);
+      } else {
+        context.fillStyle = params.colourizerOut(f);
+      }
       context.fillRect(0, 0, cellw + 1, cellh + 1);
 
       context.restore();
@@ -253,15 +264,16 @@ const createPane =() => {
   folder = pane.addFolder({ title: "Colors"});
   folder.addInput(params, "numColours", {min: 2, max:300, step: 10})
   .on('change', (ev) => {
-    params.colourizer = makeColourIndexer(params.colorStyle, params.numColours);
+    params.colourizerIn = makeColourIndexer(params.colorStyleIn, params.numColours);
+    params.colourizerOut = makeColourIndexer("mono", 2 * params.numColours);
   });
   folder.addInput(params,
-                  "colorStyle",
+                  "colorStyleIn",
                   {options: {mono: "mono",
                              random: "random",
                              blues: "blues",
                              autumn: "autumn"}}).on('change', (ev) => {
-                               params.colourizer = makeColourIndexer(params.colorStyle, params.numColours);
+                               params.colourizer = makeColourIndexer(params.colorStyleIn, params.numColours);
                              });
 }
 
