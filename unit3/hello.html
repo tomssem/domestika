@@ -1,0 +1,67 @@
+<html>
+    <body>
+        <h1>Hello, domestika</h1>
+        <canvas width="600" height="600"/>
+        <script>
+            let canvas = document.querySelector("canvas");
+
+            let context = canvas.getContext("2d");
+            context.fillStyle = "blue";
+            // context.fillRect(100, 100, 400, 400);
+            
+            context.lineWidth = 4;
+            context.strokeStyle("black");
+            // context.beginPath();
+            // context.rect(100, 100, 400, 400);
+            // context.stroke()
+
+            // context.beginPath();
+            // context.arc(300, 300, 200, 0, Math.PI * 2);
+            // context.stroke();
+
+
+            let x = 2;
+
+            let multiply = (a, b) => a * b;
+
+            console.log(multiply(7, 13));
+
+            let menu = "abcde";
+            menu.array.forEach(element => {
+                
+            });
+
+            for(i = 0; i < menu.length; ++i) {
+                console.log(menu[i]);
+            }
+
+            let years = []
+            for(i = 0; i < 10; ++i) {
+                years.push(2020 + i);
+            }
+
+            for(i = 0; i < 5; ++i) {
+                for(j = 0; j < 5; ++j) {
+                    let width = 60;
+                    let height = 60;
+                    let gap = 20
+                    let x = 100 + (width + gap) * i;
+                    let y = 100 + (height + gap) * j;
+
+                    context.beginPath();
+                    context.rect(x, y, width, height);
+                    context.stroke();
+                    
+                    if(Math.random() > 0.5) {
+                        context.beginPath();
+                        context.rect(x + 8, y + 8, width - 16, height - 16);
+                        context.stroke();
+                    }
+                }
+            }
+            console.log("" + Math.PI);
+
+            console.log(years);
+        </script>
+    </body>
+</html>
