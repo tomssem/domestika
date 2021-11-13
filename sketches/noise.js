@@ -112,6 +112,86 @@ const getColor = (f, name) => {
   }
 }
 
+class Point {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+};
+
+class Box {
+  constructor(p1, p2) {
+    this.p1 = p1;
+    this.p2 = p2;
+  }
+
+  contains(x, y) {
+    return x < this.p2.x && x > this.p1.x && y < this.p2.y && y > this.p1.y;
+  }
+}
+
+class Polygon {
+  constructor(vertices) {
+    this.vertices = vertices;
+
+    let xs = this.vertices.map(p => p.x);
+    let ys = this.vertices.map(p => p.y);
+
+    let xmax = Math.max.apply(Math, xs);
+    let ymax = Math.max.apply(Math, ys);
+
+    let xmin = Math.min.apply(Math, xs);
+    let ymin = Math.min.apply(Math, ys);
+
+    this.bbox = new Box(new Point(xmin, ymin), new Point(xmax, ymax));
+  }
+
+  draw(context) {
+    context.save();
+
+    if(this.vertices.length > 1) {
+      context.beginPath();
+      context.moveTo(this.vertices[0].x, this.vertices[0].y);
+
+      for(let i = 1; i < this.vertices.length; ++i) {
+        context.lineTo(this.vertices[i].x, this.vertices[i].y);
+      }
+
+      context.stroke();
+    }
+
+    context.restore();
+  }
+
+  contains(x, y) {
+    if(!this.bbox.contains(x, y)) {
+      // early exit
+      return false;
+    }
+  }
+}
+
+const scalePolygon = (polygon, width, height) => {
+  const widthScaler = (x) => math.mapRange(x, polygon.bbox.p1.x, polygon.bbox.p2.x, 0, width);
+  const heightScaler = (y) => math.mapRange(y, polygon.bbox.p1.y, polygon.bbox.p2.y, 0, width);
+  let newVerts = polygon.vertices.map((p) => new Point(widthScaler(p.x), heightScaler(p.y)));
+
+  return new Polygon(newVerts);
+}
+
+const mapleLeaf = new Polygon([
+  new Point(50, 110), new Point(50, 90), new Point(30, 90),
+  new Point(0, 70), new Point(10, 60), new Point(0, 50),
+  new Point(20, 40), new Point(10, 30), new Point(40, 50),
+  new Point(30, 10), new Point(40, 20), new Point(50, 0),
+  new Point(60, 0), new Point(70, 20), new Point(80, 10),
+  new Point(70, 50), new Point(100, 30), new Point(90, 40),
+  new Point(110, 50), new Point(100, 60), new Point(110, 70),
+  new Point(80, 90), new Point(60, 90), new Point(60, 110),
+  new Point(50, 110)]);
+
+
+
 const sketch = () => {
   return ({ context, width, height, frame }) => {
     if(params.colourizer === undefined) {
@@ -119,6 +199,8 @@ const sketch = () => {
     }
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
+
+    const scaledLeaf = scalePolygon(mapleLeaf, width, height);
 
     const ncols = params.cols;
     const nrows = params.rows;
@@ -147,6 +229,8 @@ const sketch = () => {
 
       context.restore();
     }
+
+    scaledLeaf.draw(context);
   };
 };
 
