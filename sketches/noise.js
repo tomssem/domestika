@@ -6,16 +6,19 @@ import {Pane} from "tweakpane"
 const settings = {
   dimensions: [ 1080, 1080 ],
   animate: true,
+  framerate: 2
 };
 
 const params = {
-  cols: 10,
-  rows: 10,
+  cols: 4,
+  rows: 4,
   freq: 0.001,
   amp: 1,
-  colorStyle: "randomColor",
+  colorStyle: "autumn",
   animate: true,
-  frame: 0
+  frame: 0,
+  colourizer: undefined,
+  numColours: 10
 };
 
 const indexColor = (x, colors) => {
@@ -41,8 +44,26 @@ const allColors = ["Aquamarine",
                     "RoyalBlue",
                     "PowderBlue"]
 
+const autumnLeaves = [
+                      "Sienna",
+                      "SandyBrown",
+                      "Orange",
+                      "Maroon",
+                      "GreenYellow",
+                      "GoldenRod",
+                      "Gold",
+                      "ForestGreen",
+                      "saddlebrown",
+                      "DarkGreen"
+                    ]
 
-const makeFunctionIndexer = (colours ,num) => {
+const themeToColours = {mono: blackAndWhite,
+                        random: allColors,
+                        autumn: autumnLeaves};
+
+
+const makeColourIndexer = (theme ,num) => {
+  const colours = themeToColours[theme];
   let cs = [];
   for(let i = 0; i < num; ++i) {
     cs.push(random.pick(colours))
@@ -93,6 +114,9 @@ const getColor = (f, name) => {
 
 const sketch = () => {
   return ({ context, width, height, frame }) => {
+    if(params.colourizer === undefined) {
+      params.colourizer = makeColourIndexer(params.colorStyle, params.numColours);
+    }
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
 
@@ -118,7 +142,7 @@ const sketch = () => {
       context.save();
       context.translate(x, y);
 
-      context.fillStyle = getColor(f, params.colorStyle);
+      context.fillStyle = params.colourizer(f);
       context.fillRect(0, 0, cellw + 1, cellh + 1);
 
       context.restore();
@@ -129,13 +153,13 @@ const sketch = () => {
 const createPane =() => {
   const pane = new Pane();
   let folder = pane.addFolder({ title: "Grid" });
-  folder.addInput(params, 'cols', { min: 2, max: 500, step: 1});
-  folder.addInput(params, 'rows', { min: 2, max: 500, step: 1});
+  folder.addInput(params, 'cols', { min: 2, max: 1080, step: 1});
+  folder.addInput(params, 'rows', { min: 2, max: 1080, step: 1});
   // folder.addInput(params, 'scaleMin', { min: 1, max: 100});
   // folder.addInput(params, 'scaleMax', { min: 1, max: 100});
 
   folder = pane.addFolder({ title: "Noise" });
-  folder.addInput(params, "freq", {min: -0.01, max: 0.01 });
+  folder.addInput(params, "freq", {min: 0, max: 0.01 });
   folder.addInput(params, "amp", {min: 1, max: 10 });
 
   folder = pane.addFolder({ title: "Animate"});
@@ -143,12 +167,17 @@ const createPane =() => {
   folder.addInput(params, "frame", {min: 0, max: 999});
 
   folder = pane.addFolder({ title: "Colors"});
+  folder.addInput(params, "numColours", {min: 2, max:300, step: 10})
+  .on('change', (ev) => {
+    params.colourizer = makeColourIndexer(params.colorStyle, params.numColours);
+  });
   folder.addInput(params,
                   "colorStyle",
                   {options: {mono: "mono",
                              random: "random",
-                             blues: "blues"}}).on('change', (ev) => {
-                               console.log(ev.value);
+                             blues: "blues",
+                             autumn: "autumn"}}).on('change', (ev) => {
+                               params.colourizer = makeColourIndexer(params.colorStyle, params.numColours);
                              });
 }
 
