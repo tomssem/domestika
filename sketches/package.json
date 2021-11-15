@@ -13,6 +13,7 @@
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "canvas-sketch": "^0.7.4",
     "canvas-sketch-util": "^1.10.0",
+    "core-js": "^3.19.1",
     "tweakpane": "^3.0.5"
   }
 }
